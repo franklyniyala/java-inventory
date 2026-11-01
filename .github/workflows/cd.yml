@@ -1,0 +1,45 @@
+name: Java Inventory CD
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Run CI before Deployment
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  deploy:
+    name: Deploy Application
+    needs: ci
+    runs-on: self-hosted
+    
+    steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Verify Production Environment Files
+          run: |
+            test -f "$HOME/.config/java-inventory/production.env"
+            echo "Production environment file exists."
+
+        - name: Deploy Application
+          run: |
+            docker compose \
+            --env-file "$HOME/.config/java-inventory/production.env" \
+            -f docker-compose.prod.yml \
+            up -d --build
+
+        - name: Verify Deployment
+          run: |
+            docker compose \
+            --env-file "$HOME/.config/java-inventory/production.env" \
+            -f docker-compose.prod.yml \
+            ps
+
+    

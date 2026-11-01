@@ -52,3 +52,5 @@ out/
 secrets/
 *.pem
 *.key
+
+.env.sonarqube
